@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    >
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Fecha"
+        android:textSize="17sp"
+        android:textStyle="bold" />
+
+    <DatePicker
+        android:id="@+id/calendarFecha"
+        style="@style/date_picker_theme"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:datePickerMode="spinner"
+        />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Descripcion"
+        android:textSize="17sp"
+        android:textStyle="bold"/>
+
+    <EditText
+        android:id="@+id/editTextDescripcion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine"
+        android:scrollHorizontally="false"
+        android:minLines="3"
+        android:maxLines="5" />
+
+
+    <TextView
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:id="@+id/textView3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Valor" />
+
+    <EditText
+        android:id="@+id/editTextValor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:padding="5dp"
+        android:inputType="number" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/buttonCancelar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/my_button_bg"
+            android:textColor="@android:color/white"
+            android:paddingTop="15dp"
+            android:drawableTop="@drawable/cross" />
+
+        <Button
+            android:id="@+id/buttonAceptar"
+            android:layout_width="wrap_content"
+            android:background="@drawable/my_button_bg"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:layout_weight="1"
+            android:paddingTop="15dp"
+            android:drawableTop="@drawable/tick" />
+    </LinearLayout>
+</LinearLayout>

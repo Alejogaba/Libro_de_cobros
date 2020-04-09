@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Libro de cobros</string>
+    <!-- Strings relacionados al login -->
+    <string name="prompt_email">Correo electronico</string>
+    <string name="prompt_password">Contraseña</string>
+    <string name="action_sign_in">Iniciar sesion/Registrarse</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">No es un nombre de usuario valido</string>
+    <string name="invalid_password">La contraseña debe contener al menos 5 caracteres</string>
+    <string name="login_failed">Inicio de sesion fallido</string>
+    <!-- Strings relacionados al Principal Activity -->
+    <string name="logout_button">Cerrar sesion</string>
+    <string name="title_activity_principal">Cobros</string>
+    <string name="action_settings">Ajustes</string>
+    <string name="total_value">Total: </string>
+</resources>
