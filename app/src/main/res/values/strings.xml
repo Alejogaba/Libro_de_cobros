@@ -13,5 +13,18 @@
     <string name="logout_button">"Logout"</string>
     <string name="title_activity_principal">PrincipalActivity</string>
     <string name="action_settings">Settings</string>
+    <!-- Strings related to registros persona-->
     <string name="total_value">Total: </string>
+    <string name="month_1">January</string>
+    <string name="month_2">February</string>
+    <string name="month_3">March</string>
+    <string name="month_4">April</string>
+    <string name="month_5">May</string>
+    <string name="month_6">June</string>
+    <string name="month_7">July</string>
+    <string name="month_8">August</string>
+    <string name="month_9">September</string>
+    <string name="month_10">October</string>
+    <string name="month_11">November</string>
+    <string name="month_12">December</string>
 </resources>

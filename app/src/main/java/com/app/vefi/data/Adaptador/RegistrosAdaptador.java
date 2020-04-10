@@ -35,7 +35,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
+import java.sql.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EventListener;
 import java.util.List;
 
@@ -49,6 +51,9 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
     private Activity mactivity;
     public static boolean visibleDelete;
     private FloatingActionButton myflaotingbtn;
+    private boolean[] mes_marcado = new boolean[11];
+    private String[] mes_ocupado = new String[11];
+    private boolean marzo= false;
     private ArrayList<Registro> listaSeleccionados=new ArrayList<>();
     private boolean isLongPress;
     Runnable mRunnable,timeRunnable;
@@ -66,6 +71,7 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View conttentView = LayoutInflater.from(context).inflate(R.layout.item_list,null);
         visibleDelete=false;
+        Arrays.fill(mes_marcado,false);
 
         return new MyHolder(conttentView);
     }
@@ -80,6 +86,100 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
         holderl.dia.setText(String.valueOf(registro.getDay()));
         holderl.descripcion.setText(registro.getDescripcion());
         holderl.valor.setText(fmt(registro.getValor()));
+        if(registro.getDay()==nMenor(registro.getMonth())){
+            if(position>0){
+                final Registro registro2 = registroArrayList.get(position-1);
+                if(registro2.getDay()!=registro.getDay()){
+                    holderl.mes.setVisibility(View.VISIBLE);
+                    switch (registro.getMonth()){
+                        case 0:
+                            holderl.mes.setText(R.string.month_1);
+                            break;
+                        case 1:
+                            holderl.mes.setText(R.string.month_2);
+                            break;
+                        case 2:
+                            holderl.mes.setText(R.string.month_3);
+                            break;
+                        case 3:
+                            holderl.mes.setText(R.string.month_4);
+                            break;
+                        case 4:
+                            holderl.mes.setText(R.string.month_5);
+                            break;
+                        case 5:
+                            holderl.mes.setText(R.string.month_6);
+                            break;
+                        case 6:
+                            holderl.mes.setText(R.string.month_7);
+                            break;
+                        case 7:
+                            holderl.mes.setText(R.string.month_8);
+                            break;
+                        case 8:
+                            holderl.mes.setText(R.string.month_9);
+                            break;
+                        case 9:
+                            holderl.mes.setText(R.string.month_10);
+                            break;
+                        case 10:
+                            holderl.mes.setText(R.string.month_11);
+                            break;
+                        case 11:
+                            holderl.mes.setText(R.string.month_12);
+                            break;
+
+                    }
+                    mes_ocupado[registro.getMonth()]=registro.getRegistroId();
+                }else{
+                    holderl.mes.setVisibility(View.GONE);
+                }
+            }else{
+                holderl.mes.setVisibility(View.VISIBLE);
+                switch (registro.getMonth()){
+                    case 0:
+                        holderl.mes.setText(R.string.month_1);
+                        break;
+                    case 1:
+                        holderl.mes.setText(R.string.month_2);
+                        break;
+                    case 2:
+                        holderl.mes.setText(R.string.month_3);
+                        break;
+                    case 3:
+                        holderl.mes.setText(R.string.month_4);
+                        break;
+                    case 4:
+                        holderl.mes.setText(R.string.month_5);
+                        break;
+                    case 5:
+                        holderl.mes.setText(R.string.month_6);
+                        break;
+                    case 6:
+                        holderl.mes.setText(R.string.month_7);
+                        break;
+                    case 7:
+                        holderl.mes.setText(R.string.month_8);
+                        break;
+                    case 8:
+                        holderl.mes.setText(R.string.month_9);
+                        break;
+                    case 9:
+                        holderl.mes.setText(R.string.month_10);
+                        break;
+                    case 10:
+                        holderl.mes.setText(R.string.month_11);
+                        break;
+                    case 11:
+                        holderl.mes.setText(R.string.month_12);
+                        break;
+
+                }
+            }
+
+        }else{
+            holderl.mes.setVisibility(View.GONE);
+        }
         if(visibleDelete) {
             holderl.seleccionado.setVisibility(View.VISIBLE);
         }else{
@@ -131,6 +231,18 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
         }
 
 
+    }
+
+    public int nMenor(int mes){
+        int menor=32;
+            for(Registro p : registroArrayList){
+                if(p.getMonth()==mes){
+                    if(p.getDay()<menor){
+                        menor=p.getDay();
+                    }
+                }
+            }
+         return menor;
     }
 
 
@@ -186,6 +298,7 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
 
      public static class MyHolder extends RecyclerView.ViewHolder{
 
+        TextView mes;
         TextView dia;
         TextView descripcion;
         TextView valor;
@@ -195,6 +308,7 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
         public MyHolder(@NonNull View itemView) {
 
             super(itemView);
+            mes = itemView.findViewById(R.id.textViewMes);
             seleccionado = itemView.findViewById(R.id.checkBoxSeleccion);
             dia = itemView.findViewById(R.id.textViewDia);
             descripcion = itemView.findViewById(R.id.textViewDescripcion);

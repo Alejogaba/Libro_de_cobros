@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -71,7 +72,8 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
         firebase =  new Firebase(url);
 
         datos= getIntent().getExtras();
-        final String datoObtenido = datos.getString("name");
+        final String datoObtenido = datos.getString("uid");
+        final String datoNombre = datos.getString("name");
         copyDatobtenido=datoObtenido;
         titulo = findViewById(R.id.textView_titulo);
         btnAdd = findViewById(R.id.buttonAdd);
@@ -84,7 +86,7 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
         milistaDatos.setAdapter(adapter);
         milistaDatos.addItemDecoration(new DividerItemDecoration(DetallesPersonaActivity.this, LinearLayout.VERTICAL));
 
-        titulo.setText(datoObtenido);
+        titulo.setText(datoNombre);
 
         final FirebaseUser user = mauth.getCurrentUser();
         Log.e(tag,"SE OBTIENE USUARIO");
@@ -93,7 +95,7 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
         Log.e(tag,"SE DECLARA ARAYADAPTER");
         Log.e(tag,"SET ADAPATER");
 
-        firebase.child(datoObtenido).addChildEventListener(new ChildEventListener() {
+        firebase.child(datoObtenido).orderByChild("month").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 if (dataSnapshot != null && dataSnapshot.getValue() != null) {
@@ -104,7 +106,6 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
                             milistaDatos.scrollToPosition(registroArrayList.size() - 1);
                             adapter.notifyItemInserted(registroArrayList.size() - 1);
                             total.setText(sumar());
-
                     }
                     catch (Exception ex) {
                         Log.e("ERROR", ex.getMessage());
@@ -180,6 +181,7 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
         descripcion.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.showSoftInput(descripcion, InputMethodManager.SHOW_IMPLICIT);
+        descripcion.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES|InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 
         long now = System.currentTimeMillis() - 1000;
         fecha.setMaxDate(now);

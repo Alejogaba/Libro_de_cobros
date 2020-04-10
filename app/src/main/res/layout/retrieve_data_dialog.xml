@@ -35,7 +35,8 @@
         android:layout_height="wrap_content"
         android:inputType="textMultiLine"
         android:scrollHorizontally="false"
-        android:minLines="3"
+        android:minLines="1"
+
         android:maxLines="5" />
 
 

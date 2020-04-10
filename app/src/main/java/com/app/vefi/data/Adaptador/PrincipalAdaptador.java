@@ -70,7 +70,7 @@ public class PrincipalAdaptador extends RecyclerView.Adapter {
         mlayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                launchDetallesActivity(person.getNombre());
+                launchDetallesActivity(person.getId(),person.getNombre());
             }
         });
 
@@ -117,9 +117,10 @@ public class PrincipalAdaptador extends RecyclerView.Adapter {
         return personArrayList.size();
     }
 
-    public void launchDetallesActivity(String seleccionado){
+    public void launchDetallesActivity(String seleccionado,String nombre){
         Intent intent = new Intent(context, DetallesPersonaActivity.class);
-        intent.putExtra("name",seleccionado);
+        intent.putExtra("uid",seleccionado);
+        intent.putExtra("name",nombre);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         context.startActivity(intent);
