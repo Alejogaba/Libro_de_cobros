@@ -3,7 +3,10 @@ package com.app.vefi;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.InputType;
@@ -25,6 +28,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -45,6 +49,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseError;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Date;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -83,13 +91,27 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
     ArrayList<Registro> listaAmostrar = new ArrayList<>();
     ArrayList<Registro> copiaregistroArrayList = new ArrayList<>();
 
+
+    private static final String AUTHORITY="com.app.vefi.provider";
     private String url = "https://proyecto-cobros.firebaseio.com/users/";
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detalles_persona);
 
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Toast.makeText(getApplicationContext(),"onStart",Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onResume() {
+        registroArrayList = new ArrayList<>();
+        super.onResume();
         mauth = FirebaseAuth.getInstance();
         lgnActivity.finish();
         Firebase.setAndroidContext(this);
@@ -132,12 +154,12 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 if (dataSnapshot != null && dataSnapshot.getValue() != null) {
                     try {
-                            Registro event = dataSnapshot.getValue(Registro.class);
-                            registroArrayList.add(event);
-                            milistaDatos.scrollToPosition(registroArrayList.size() - 1);
-                            adapter.notifyItemInserted(registroArrayList.size() - 1);
-                            total.setText(sumar());
-                            listaEstavacia();
+                        Registro event = dataSnapshot.getValue(Registro.class);
+                        registroArrayList.add(event);
+                        milistaDatos.scrollToPosition(registroArrayList.size() - 1);
+                        adapter.notifyItemInserted(registroArrayList.size() - 1);
+                        total.setText(sumar());
+                        listaEstavacia();
                     }
                     catch (Exception ex) {
                         Log.e("ERROR", ex.getMessage());
@@ -152,21 +174,21 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                    try {
-                        Registro event = dataSnapshot.getValue(Registro.class);
-                        for (int i = 0; i < registroArrayList.size(); i++) {
-                            if (registroArrayList.get(i).getRegistroId().equals(event.getRegistroId())) {
-                                registroArrayList.remove(i);
-                                adapter.notifyItemRemoved(i);
-                                break;
-                            }
+                try {
+                    Registro event = dataSnapshot.getValue(Registro.class);
+                    for (int i = 0; i < registroArrayList.size(); i++) {
+                        if (registroArrayList.get(i).getRegistroId().equals(event.getRegistroId())) {
+                            registroArrayList.remove(i);
+                            adapter.notifyItemRemoved(i);
+                            break;
                         }
-                        total.setText(sumar());
-                        listaEstavacia();
                     }
-                    catch (Exception ex) {
-                        Log.e("ERROR", ex.getMessage());
-                    }
+                    total.setText(sumar());
+                    listaEstavacia();
+                }
+                catch (Exception ex) {
+                    Log.e("ERROR", ex.getMessage());
+                }
 
             }
 
@@ -247,8 +269,7 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
             public void run() {
                 listaEstavacia();
             }
-        }, 1000);
-
+        }, 1500);
 
     }
 
@@ -257,9 +278,11 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
             textoPazysalvo.setText("¡Todo correcto!\nEste cliente no tiene deudas pendientes");
             imagenPazysalvo.setVisibility(View.VISIBLE);
             textoPazysalvo.setVisibility(View.VISIBLE);
+            btnPdf.setVisibility(View.GONE);
         }else{
             imagenPazysalvo.setVisibility(View.GONE);
             textoPazysalvo.setVisibility(View.GONE);
+            btnPdf.setVisibility(View.VISIBLE);
         }
     }
 
@@ -291,6 +314,7 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
             Toast.makeText(getApplicationContext(),"PDF Generado",Toast.LENGTH_SHORT).show();
 
             templatePDF.appViewPDF(this);
+            //open_file(templatePDF.retornarArchivo());
         }
     }
 
@@ -359,6 +383,33 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
     }
 
 
+    public void open_file(File file) {
+
+        // Get URI and MIME type of file
+        Uri uri = FileProvider.getUriForFile(this, this.getPackageName()+ ".fileprovider", file);
+        String mime = getContentResolver().getType(uri);
+
+        // Open file with user selected app
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.setDataAndType(uri, mime);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(intent);
+
+    }
+
+    static private void copy(InputStream in, File dst) throws IOException {
+        FileOutputStream out=new FileOutputStream(dst);
+        byte[] buf=new byte[1024];
+        int len;
+
+        while ((len=in.read(buf)) > 0) {
+            out.write(buf, 0, len);
+        }
+
+        in.close();
+        out.close();
+    }
 
 
     public void abrirDialog(final String obtenido){
@@ -536,7 +587,7 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
         }
 
     }
-
+/*
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -548,6 +599,8 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
             }
         }
     }
+
+ */
 
     public void solicitarPermisosManual(){
         final CharSequence[] opciones ={"si","no"};

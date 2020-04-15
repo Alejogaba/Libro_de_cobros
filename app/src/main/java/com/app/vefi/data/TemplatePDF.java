@@ -18,8 +18,10 @@ import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.app.vefi.DetallesPersonaActivity;
+import com.app.vefi.GenericFileProvider;
 import com.app.vefi.R;
 import com.app.vefi.data.model.Registro;
 import com.itextpdf.text.BaseColor;
@@ -40,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Currency;
 import java.util.Locale;
 
+import static android.Manifest.permission.CAMERA;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
@@ -53,6 +56,7 @@ public class TemplatePDF {
     private Font fsubtitle = new Font(Font.FontFamily.TIMES_ROMAN,18,Font.BOLD);
     private Font fText = new Font(Font.FontFamily.TIMES_ROMAN,12,Font.BOLD);
     private Font fHighText = new Font(Font.FontFamily.TIMES_ROMAN,15,Font.BOLD, BaseColor.LIGHT_GRAY);
+    private static final String AUTHORITY="com.app.vefi.provider";
 
     public TemplatePDF(Context context) {
         this.context = context;
@@ -280,23 +284,45 @@ public class TemplatePDF {
         return mes;
     }
 
+    public File retornarArchivo(){
+        return pdfFile;
+    }
 
     public void appViewPDF(Activity activity){
-        if(pdfFile.exists()){
-            Uri uri = Uri.fromFile(pdfFile);
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(uri,"application/pdf");
-            try{
-                activity.startActivity(intent);
+        if(Build.VERSION.SDK_INT<Build.VERSION_CODES.M){
+            if(pdfFile.exists()){
+                Uri uri = Uri.fromFile(pdfFile);
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(uri,"application/pdf");
+                try{
+                    activity.startActivity(intent);
 
-            }catch (ActivityNotFoundException e){
-                activity.startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("market://details?id=com.adobe.reader")));
-                Toast.makeText(activity.getApplicationContext(),"No hay ninguna aplicacion instalada que permita visualizar archivos PDF",Toast.LENGTH_LONG);
-                Log.e("ERROR-PDF:",e.toString());
+                }catch (ActivityNotFoundException e){
+                    activity.startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("market://details?id=com.adobe.reader")));
+                    Toast.makeText(activity.getApplicationContext(),"No hay ninguna aplicacion instalada que permita visualizar archivos PDF",Toast.LENGTH_LONG);
+                    Log.e("ERROR-PDF:",e.toString());
+                }
+            }else{
+                Toast.makeText(activity.getApplicationContext(),"No se encontro el archivo",Toast.LENGTH_LONG);
             }
         }else{
-            Toast.makeText(activity.getApplicationContext(),"No se encontro el archivo",Toast.LENGTH_LONG);
+            try {
+                Uri uri = FileProvider.getUriForFile(activity.getApplicationContext(), activity.getPackageName() + ".provider", pdfFile);
+                String mime =activity.getContentResolver().getType(uri);
+
+                // Open file with user selected app
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.setDataAndType(uri, "application/pdf");
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                activity.startActivity(intent);
+            }catch (Exception e){
+                Log.e("ABRIR-ARCHIVO: ",e.toString());
+            }
+
+
         }
+
     }
 
 }

@@ -205,6 +205,11 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
             holderl.seleccionado.setChecked(false);
         }
 
+        if(registro.getDay()<10){
+            String dia = "0"+registro.getDay();
+            holderl.dia.setText(dia);
+        }
+
 
         final ConstraintLayout mlayout = holderl.mylayout;
         final ConstraintLayout containerRegistro = holderl.containerRegistro;
