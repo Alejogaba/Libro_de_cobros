@@ -16,29 +16,17 @@
         android:layout_height="wrap_content"
         android:text="Mes"
         android:textSize="24sp"
+        android:textColor="@android:color/darker_gray"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.47"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayout"
-        android:layout_width="409dp"
+        android:id="@+id/constraintLayoutRegistro"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewMes">
-
-        <TextView
-            android:id="@+id/textViewDia"
-            android:layout_width="0dp"
-
-            android:layout_height="wrap_content"
-            android:text="01"
-            android:textColor="@color/itemTextColor"
-            android:textSize="30sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/checkBoxSeleccion"
-            app:layout_constraintTop_toTopOf="parent" />
 
         <CheckBox
             android:id="@+id/checkBoxSeleccion"
@@ -51,42 +39,46 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
         <TextView
             android:id="@+id/textViewDescripcion"
             android:layout_width="240dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Descripcion"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="32dp"
+            android:textAlignment="textStart"
+            android:text="fjsdfdskfksldjflsdjflskdflksjdfjsdlkjfksdjkflsdjkflsdjfksdjflksdj"
             android:textColor="@color/itemTextColor"
             android:textSize="30sp"
+            app:layout_constraintEnd_toStartOf="@+id/textViewValor"
             app:layout_constraintStart_toEndOf="@+id/textViewDia"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/textViewValor"
+            android:id="@+id/textViewDia"
             android:layout_width="0dp"
+            android:textAlignment="textStart"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="3dp"
+            android:text="01"
+            android:textColor="@color/itemTextColor"
+
+            android:textSize="30sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/checkBoxSeleccion"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textViewValor"
+            android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:text="1"
+            android:text="100000"
             android:textAlignment="textEnd"
             android:textColor="@color/itemTextColor"
             android:textSize="30sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/guideline"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_end="109dp" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

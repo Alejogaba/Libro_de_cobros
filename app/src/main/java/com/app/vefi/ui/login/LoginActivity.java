@@ -3,10 +3,12 @@ package com.app.vefi.ui.login;
 import android.app.Activity;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -15,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.multidex.MultiDex;
 
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -39,18 +42,25 @@ import com.google.firebase.auth.FirebaseAuthEmailException;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
+import com.itextpdf.text.BaseColor;
 
 public class LoginActivity extends AppCompatActivity {
 
     private LoginViewModel loginViewModel;
     private FirebaseAuth mauth;
     private FirebaseAuth.AuthStateListener mauthStateListener;
+    private ProgressBar progressBarLogin;
+    private Button loginButton;
+    private EditText usernameEditText;
+    private EditText passwordEditText;
+    private ConstraintLayout contenedorPrincipal;
     private static String tag = "TAG";
     private Firebase firebase;
     public static Activity lgnActivity;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         Log.v(tag,"Se inicia LoginActivty");
         mauth = FirebaseAuth.getInstance();
@@ -63,9 +73,11 @@ public class LoginActivity extends AppCompatActivity {
                 .get(LoginViewModel.class);
 
         MultiDex.install(this);
-        final EditText usernameEditText = findViewById(R.id.username);
-        final EditText passwordEditText = findViewById(R.id.password);
-        final Button loginButton = findViewById(R.id.login);
+        progressBarLogin = findViewById(R.id.progressBarLogin);
+        contenedorPrincipal = findViewById(R.id.contenedorPrincipalLogin);
+        usernameEditText = findViewById(R.id.username);
+        passwordEditText = findViewById(R.id.password);
+        loginButton = findViewById(R.id.login);
         final ProgressBar loadingProgressBar = findViewById(R.id.loading);
 
 
@@ -169,6 +181,22 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    public void cargando(){
+        progressBarLogin.setVisibility(View.VISIBLE);
+        loginButton.setEnabled(false);
+        loginButton.setTextColor(Color.GRAY);
+        usernameEditText.setEnabled(false);
+        passwordEditText.setEnabled(false);
+    }
+
+    public void detenercarga(){
+        progressBarLogin.setVisibility(View.GONE);
+        loginButton.setEnabled(true);
+        loginButton.setTextColor(Color.BLACK);
+        usernameEditText.setEnabled(true);
+        passwordEditText.setEnabled(true);
+    }
+
     private void createuser(final String username, final String password){
         final String mensaje,email,mpassword,mensaje_exito,mensaje_fallo;
         mensaje_exito="Se creo exitosamente el usuario";
@@ -192,6 +220,7 @@ public class LoginActivity extends AppCompatActivity {
 
 
     private void SignIn(final String username, final String password){
+        cargando();
         String mensaje,email,mpassword;
         final String mensaje_exito= "Inicio de sesion correcto";
         final String mensaje_fallo= "No se pudo iniciar sesion";
@@ -205,6 +234,7 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.makeText(LoginActivity.this,mensaje_exito,Toast.LENGTH_SHORT).show();
                         LaunchActivity();
                     }else{
+                        detenercarga();
                         Toast.makeText(LoginActivity.this,mensaje_fallo,Toast.LENGTH_SHORT).show();
                     }
 
@@ -212,6 +242,7 @@ public class LoginActivity extends AppCompatActivity {
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
+                    detenercarga();
                     if(e instanceof FirebaseAuthInvalidCredentialsException){
                         Onerror("Contraseña invalida");
                     }else{
@@ -231,6 +262,7 @@ public class LoginActivity extends AppCompatActivity {
 
 
     private void Onerror(String e){
+        detenercarga();
         Toast.makeText(LoginActivity.this,"Error: "+e,Toast.LENGTH_SHORT).show();
     }
 

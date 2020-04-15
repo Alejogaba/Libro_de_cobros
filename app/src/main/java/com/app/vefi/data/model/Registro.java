@@ -9,17 +9,19 @@ public class Registro {
     private String descripcion;
     private float valor;
     private String registroId;
+    private int year_month_day;
 
     public Registro() {
     }
 
-    public Registro(int day, String descripcion,int month,String registroId, float valor, int year) {
+    public Registro(int day, String descripcion,int month,String registroId, float valor, int year, int year_month_day) {
         this.setDay(day);
         this.setMonth(month);
         this.setYear(year);
         this.setDescripcion(descripcion);
         this.setValor(valor);
         this.setRegistroId(registroId);
+        this.setYear_month_day(year_month_day);
     }
 
     public int getDay() {
@@ -70,6 +72,13 @@ public class Registro {
         this.registroId = registroId;
     }
 
+    public int getYear_month_day() {
+        return year_month_day;
+    }
+
+    public void setYear_month_day(int year_month_day) {
+        this.year_month_day = year_month_day;
+    }
 
     @Override
     public String toString() {

@@ -4,8 +4,9 @@
     <color name="colorPrimaryDark">#035700</color>
     <color name="colorAccent">#F22D941B</color>
     <color name="colorButtomBar">#E4E4E4</color>
-    <color name="itemTextColor">#FF382E2D</color>
+    <color name="itemTextColor">#382E2D</color>
     <color name="backgroundFloatingButton">#B00EA764</color>
+    <color name="icon_background">#059E16</color>
 
 
 </resources>

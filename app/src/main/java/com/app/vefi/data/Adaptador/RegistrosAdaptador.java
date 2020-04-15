@@ -6,7 +6,10 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -36,10 +39,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
 import java.sql.Array;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Currency;
 import java.util.EventListener;
 import java.util.List;
+import java.util.Locale;
 
 public class RegistrosAdaptador extends RecyclerView.Adapter {
     private Context context;
@@ -53,6 +59,10 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
     private FloatingActionButton myflaotingbtn;
     private boolean[] mes_marcado = new boolean[11];
     private String[] mes_ocupado = new String[11];
+    private boolean[] mes_visible = new boolean[11];
+    private float total;
+    private float abonado;
+    private boolean modificar;
     private boolean marzo= false;
     private ArrayList<Registro> listaSeleccionados=new ArrayList<>();
     private boolean isLongPress;
@@ -71,7 +81,8 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View conttentView = LayoutInflater.from(context).inflate(R.layout.item_list,null);
         visibleDelete=false;
-        Arrays.fill(mes_marcado,false);
+
+        Arrays.fill(mes_visible,true);
 
         return new MyHolder(conttentView);
     }
@@ -85,7 +96,14 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
         myflaotingbtn = mactivity.findViewById(R.id.buttonAdd);
         holderl.dia.setText(String.valueOf(registro.getDay()));
         holderl.descripcion.setText(registro.getDescripcion());
-        holderl.valor.setText(fmt(registro.getValor()));
+        holderl.valor.setText(convertirMoneda(registro.getValor()));
+
+        if(registro.getValor()<0){
+            holderl.valor.setTextColor(mactivity.getResources().getColor(R.color.colorAccent));
+            holderl.descripcion.setTextColor(mactivity.getResources().getColor(R.color.colorAccent));
+            holderl.dia.setTextColor(mactivity.getResources().getColor(R.color.colorAccent));
+        }
+
         if(registro.getDay()==nMenor(registro.getMonth())){
             if(position>0){
                 final Registro registro2 = registroArrayList.get(position-1);
@@ -187,7 +205,30 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
             holderl.seleccionado.setChecked(false);
         }
 
+
         final ConstraintLayout mlayout = holderl.mylayout;
+        final ConstraintLayout containerRegistro = holderl.containerRegistro;
+        if(mes_visible[registro.getMonth()]) {
+            containerRegistro.setVisibility(View.VISIBLE);
+        }else{
+            containerRegistro.setVisibility(View.GONE);
+        }
+
+
+
+        holderl.mes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mes_visible[registro.getMonth()]){
+                    mes_visible[registro.getMonth()]=false;
+                    notifyDataSetChanged();
+                }else{
+                    mes_visible[registro.getMonth()]=true;
+                    notifyDataSetChanged();
+                }
+            }
+        });
+
         mlayout.setClickable(true);
 
 
@@ -197,12 +238,15 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
                     if(visibleDelete){
                       if(holderl.seleccionado.isChecked()){
                           holderl.seleccionado.setChecked(false);
-                          listaSeleccionados.remove(registro);
+                          if(listaSeleccionados.contains(registro)){
+                              listaSeleccionados.remove(registro);
+                          }
                       }else{
                           holderl.seleccionado.setChecked(true);
                           listaSeleccionados.add(registro);
                       }
                     }
+
                 }
             });
 
@@ -210,12 +254,13 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
         mlayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                //abrirDialogEliminar(registro);
-                visibleDelete=true;
+                abrirDialogEliminarIndividual(registro);
+                /*visibleDelete=true;
                 myflaotingbtn.setImageResource(R.drawable.delete);
                 holderl.seleccionado.setChecked(true);
                 listaSeleccionados.add(registro);
                 notifyDataSetChanged();
+                 */
                 return true;
             }
         });
@@ -264,6 +309,30 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
                        DetallesPersonaActivity.btnAdd.setImageResource(R.drawable.plus);
                        visibleDelete=false;
                        notifyDataSetChanged();
+                       mactivity.recreate();
+                        Toast.makeText(context,"Eliminado correctamente",Toast.LENGTH_LONG).show();
+                    }
+                }).setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        }).setCancelable(false).show();
+
+    }
+
+    public void abrirDialogEliminarIndividual(final Registro seleccionados){
+        AlertDialog.Builder builder = new AlertDialog.Builder(mactivity);
+        builder.setTitle("Eliminar");
+        builder.setMessage("¿Esta seguro que desea eliminar los registros seleccionados?")
+                .setPositiveButton("Si", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        final FirebaseUser user = mauth.getCurrentUser();
+                        firebase =  new Firebase(url+user.getUid());
+                        firebase.child("registros").child(persona).child(seleccionados.getRegistroId()).setValue(null);
+                        dialog.dismiss();
+                        DetallesPersonaActivity.btnAdd.setImageResource(R.drawable.plus);
                         Toast.makeText(context,"Eliminado correctamente",Toast.LENGTH_LONG).show();
                     }
                 }).setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
@@ -288,6 +357,24 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
         return registroArrayList.size();
     }
 
+    public String convertirMoneda(float valor){
+        Locale locale =mactivity.getResources().getConfiguration().locale;
+        Currency currency = Currency.getInstance(locale);
+        NumberFormat col = NumberFormat.getCurrencyInstance(locale);
+        if(valor == (int) valor)
+            if(valor<0){
+                return col.format((int)valor).replace(currency.getSymbol(),"").replace("-","+").replace(".00","");
+            }else{
+                return col.format((int)valor).replace(currency.getSymbol(),"").replace(".00","");
+            }
+        else
+        if(valor<0){
+            return col.format(valor).replace(currency.getSymbol(),"").replace("-","+").replace(".00","");
+        }else{
+            return col.format(valor).replace(currency.getSymbol(),"").replace(".00","");
+        }
+    }
+
 
 
     public void updateList(List<Registro> newlist) {
@@ -304,6 +391,7 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
         TextView valor;
         ConstraintLayout mylayout;
         CheckBox seleccionado;
+        ConstraintLayout containerRegistro;
 
         public MyHolder(@NonNull View itemView) {
 
@@ -313,6 +401,7 @@ public class RegistrosAdaptador extends RecyclerView.Adapter {
             dia = itemView.findViewById(R.id.textViewDia);
             descripcion = itemView.findViewById(R.id.textViewDescripcion);
             valor = itemView.findViewById(R.id.textViewValor);
+            containerRegistro = itemView.findViewById(R.id.constraintLayoutRegistro);
              mylayout = itemView.findViewById(R.id.linearLayout);
         }
 
