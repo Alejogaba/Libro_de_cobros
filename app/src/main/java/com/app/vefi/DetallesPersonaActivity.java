@@ -22,6 +22,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +49,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -81,6 +83,7 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
     private ScrollView scrollViewRegistros;
     public String copyDatobtenido;
     private LinearLayout customSnackview;
+    private ProgressBar barradeProgreso;
     private RecyclerView milistaDatos;
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager manager;
@@ -97,15 +100,17 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_detalles_persona);
-
-
     }
 
     @Override
     protected void onStart() {
+        textoPazysalvo = findViewById(R.id.textViewPazySalvo);
+        imagenPazysalvo = findViewById(R.id.imageViewPazySalvo);
+        barradeProgreso = findViewById(R.id.progressBarDetallesRegistros);
+        cargando();
         super.onStart();
-        Toast.makeText(getApplicationContext(),"onStart",Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -113,6 +118,7 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
         registroArrayList = new ArrayList<>();
         super.onResume();
         mauth = FirebaseAuth.getInstance();
+        //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         lgnActivity.finish();
         Firebase.setAndroidContext(this);
         firebase =  new Firebase(url);
@@ -123,11 +129,11 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
         copyDatobtenido=datoObtenido;
         titulo = findViewById(R.id.textView_titulo);
         textoTotal = findViewById(R.id.textoTotal);
-        textoPazysalvo = findViewById(R.id.textViewPazySalvo);
-        imagenPazysalvo = findViewById(R.id.imageViewPazySalvo);
+
         btnAdd = findViewById(R.id.buttonAdd);
         btnAbonar = findViewById(R.id.buttonAbonar);
         btnPdf = findViewById(R.id.buttonPdf);
+
         valorAbonar = findViewById(R.id.editTextValorAbonar);
         total = findViewById(R.id.textViewTotal);
         customSnackview = findViewById(R.id.linearLayoutCustom_Snackview);
@@ -213,7 +219,7 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
         btnPdf.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                generarPdf(registroArrayList);
+                generarPdf(registroArrayList,datoNombre);
             }
         });
 
@@ -284,12 +290,21 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
             textoPazysalvo.setVisibility(View.GONE);
             btnPdf.setVisibility(View.VISIBLE);
         }
+        cargando();
+    }
+
+    public void cargando(){
+        if((textoPazysalvo.getVisibility()==View.GONE)&&(registroArrayList.size()==0)){
+            barradeProgreso.setVisibility(View.VISIBLE);
+        }else{
+            barradeProgreso.setVisibility(View.GONE);
+        }
+
     }
 
 
 
-
-    public void generarPdf(ArrayList<Registro> r2){
+    public void generarPdf(ArrayList<Registro> r2,String nombrePersona){
         listaAmostrar = r2;
         float total = 0;
         for(Registro p : registroArrayList){
@@ -305,10 +320,11 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
             int day = cal.get(Calendar.DAY_OF_MONTH);
             int month = cal.get(Calendar.MONTH);
             int year = cal.get(Calendar.YEAR);
+            String subtitle = "Reporte "+nombrePersona;
             String fecha_actual = day+"/"+month+"/"+year;
-            templatePDF.openDocument(this);
-            templatePDF.addMetaData("Reporte","Ventas","alguien");
-            templatePDF.addTitles( "Variedades Flor","Reporte",fecha_actual);
+            templatePDF.openDocument(this,subtitle);
+            templatePDF.addMetaData(subtitle,"Ventas",nombrePersona);
+            templatePDF.addTitles( "Variedades y comunicaciones Flor","Reporte",fecha_actual);
             templatePDF.createTable(headers,listaAmostrar,this);
             templatePDF.closeDocument();
             Toast.makeText(getApplicationContext(),"PDF Generado",Toast.LENGTH_SHORT).show();

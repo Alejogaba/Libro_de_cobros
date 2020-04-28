@@ -61,13 +61,12 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.AppTheme);
-        super.onCreate(savedInstanceState);
         Log.v(tag,"Se inicia LoginActivty");
         mauth = FirebaseAuth.getInstance();
         lgnActivity=this;
         IsLogged();
+        super.onCreate(savedInstanceState);
         Log.v(tag,"Se asigna contexto a Fireebase");
-
         setContentView(R.layout.activity_login);
         loginViewModel = ViewModelProviders.of(this, new LoginViewModelFactory())
                 .get(LoginViewModel.class);

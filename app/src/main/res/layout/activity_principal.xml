@@ -31,6 +31,20 @@
                 app:layout_collapseMode="pin"
                 app:popupTheme="@style/AppTheme.PopupOverlay" />
 
+            <Button
+                android:id="@+id/buttonSearchPrincipal"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|top"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="40dp"
+                android:gravity="center"
+                android:minWidth="0dp"
+                android:drawableStart="@drawable/ic_search"
+                android:paddingTop="5dp"
+                android:background="@color/colorPrimary"/>
+
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 

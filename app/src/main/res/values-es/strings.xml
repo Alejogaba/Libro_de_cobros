@@ -11,9 +11,9 @@
     <string name="login_failed">Inicio de sesion fallido</string>
     <!-- Strings relacionados al Principal Activity -->
     <string name="logout_button">Cerrar sesion</string>
-    <string name="title_activity_principal">Cobros</string>
+    <string name="title_activity_principal">Mis deudores</string>
     <string name="action_settings">Ajustes</string>
-    <!-- Strings related to registros persona-->
+    <!-- Strings relacionados registros persona-->
     <string name="total_value">Total: </string>
     <string name="month_1">Enero</string>
     <string name="month_2">Febrero</string>

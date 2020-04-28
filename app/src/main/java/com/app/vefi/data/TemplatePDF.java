@@ -53,7 +53,7 @@ public class TemplatePDF {
     private PdfWriter pdfWriter;
     private Paragraph paragraph;
     private Font ftitle = new Font(Font.FontFamily.TIMES_ROMAN,20,Font.BOLD);
-    private Font fsubtitle = new Font(Font.FontFamily.TIMES_ROMAN,18,Font.BOLD);
+    private Font fsubtitle = new Font(Font.FontFamily.TIMES_ROMAN,17,Font.BOLD);
     private Font fText = new Font(Font.FontFamily.TIMES_ROMAN,12,Font.BOLD);
     private Font fHighText = new Font(Font.FontFamily.TIMES_ROMAN,15,Font.BOLD, BaseColor.LIGHT_GRAY);
     private static final String AUTHORITY="com.app.vefi.provider";
@@ -62,8 +62,8 @@ public class TemplatePDF {
         this.context = context;
     }
 
-    public void openDocument(Activity activity){
-       createFile();
+    public void openDocument(Activity activity,String nombre){
+       createFile(nombre);
         try {
             document = new Document(PageSize.LETTER);
             pdfWriter = PdfWriter.getInstance(document,new FileOutputStream(pdfFile));
@@ -115,14 +115,14 @@ public class TemplatePDF {
     }
 
 
-    private void createFile(){
+    private void createFile(String nombre){
         try{
-            String rootPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/PDF";
+            String rootPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Libro de cobros/Reportes PDF/";
             File root = new File(rootPath);
             if(!root.exists()){
                 root.mkdirs();
             }
-            pdfFile = new File(rootPath + "TemplatePDF.pdf");
+            pdfFile = new File(rootPath+nombre+".pdf");
             if (pdfFile.exists()) {
                 pdfFile.delete();
             }
@@ -149,10 +149,12 @@ public class TemplatePDF {
     public void addTitles(String title,String subtitle,String date){
         try{
             paragraph= new Paragraph();
+            paragraph.setSpacingBefore(10);
             addChild(new Paragraph(title,ftitle));
-            addChild(new Paragraph(subtitle,fsubtitle));
+
             addChild(new Paragraph("Generado: "+date,fHighText));
-            paragraph.setSpacingAfter(30);
+            paragraph.setSpacingAfter(20);
+
             document.add(paragraph);
         }catch (Exception e){
             Log.e("ERROR-PDF:",e.toString());

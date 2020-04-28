@@ -32,6 +32,9 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -42,6 +45,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -62,6 +66,7 @@ public class PrincipalActivity extends AppCompatActivity {
     private RecyclerView milistaDatos;
     private RecyclerView.Adapter madapter;
     private EditText persona;
+    private Button btnBuscar;
     private RecyclerView.LayoutManager manager;
     private int contador;
     private boolean existe;
@@ -76,14 +81,17 @@ public class PrincipalActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         mauth = FirebaseAuth.getInstance();
+        //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         lgnActivity.finish();
         Firebase.setAndroidContext(this);
         firebase =  new Firebase(url);
+
         //generateDatabase();
 
 
         setContentView(R.layout.activity_principal);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        btnBuscar = findViewById(R.id.buttonSearchPrincipal);
         milistaDatos = (RecyclerView) findViewById(R.id.lista_personas_a_cobrar);
         milistaDatos.setHasFixedSize(true);
         manager = new LinearLayoutManager(this);
@@ -109,7 +117,7 @@ public class PrincipalActivity extends AppCompatActivity {
 
                         Person event = dataSnapshot.getValue(Person.class);
                         personArrayList.add(event);
-                        milistaDatos.scrollToPosition(personArrayList.size() - 1);
+                        milistaDatos.smoothScrollToPosition(personArrayList.size() - 1);
                         madapter.notifyItemInserted(personArrayList.size() - 1);
 
                     }
@@ -174,20 +182,53 @@ public class PrincipalActivity extends AppCompatActivity {
             public void onClick(View view) {
                 contador++;
                if(contador==1){
-                    fab.setImageResource(R.drawable.check);
-                    persona.setVisibility(View.VISIBLE);
-                    persona.requestFocus();
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.showSoftInput(persona, InputMethodManager.SHOW_IMPLICIT);
-
+                   fab.setImageResource(R.drawable.check);
+                   mostrarEdiTextPersona();
                 }else{
-                    addDato();
+                   if(contador>1){
+                       addDato();
+                   }
                 }
 
 
             }
         });
 
+        btnBuscar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mostrarEdiTextPersona();
+
+                persona.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        if(count!=0) {
+                            buscar(s.toString());
+                        }
+                        else
+                            buscar("");
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+
+                    }
+                });
+            }
+        });
+    }
+
+    public void mostrarEdiTextPersona(){
+        persona.setVisibility(View.VISIBLE);
+        persona.requestFocus();
+        persona.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(persona, InputMethodManager.SHOW_IMPLICIT);
     }
 
     public void addDato(){
@@ -215,7 +256,7 @@ public class PrincipalActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if(contador==1){
+        if(persona.getVisibility()==View.VISIBLE){
             finishEdit();
         }else{
             finish();
@@ -250,6 +291,68 @@ public class PrincipalActivity extends AppCompatActivity {
 
 
 
+    public void buscar(final String palabra_clave){
+        personArrayList.clear();
+        madapter.notifyDataSetChanged();
+        FirebaseUser user = mauth.getCurrentUser();
+
+        firebase = new Firebase(url+user.getUid()+"/personas");
+
+        firebase.orderByChild("nombre").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                if (dataSnapshot != null && dataSnapshot.getValue() != null) {
+                    try {
+
+                        Person event = dataSnapshot.getValue(Person.class);
+                        if(event.getNombre().contains(palabra_clave)){
+                            personArrayList.add(event);
+                            milistaDatos.scrollToPosition(personArrayList.size() - 1);
+                            madapter.notifyItemInserted(personArrayList.size() - 1);
+                        }
+
+
+                    }
+                    catch (Exception ex) {
+                        Log.e("ERROR", ex.getMessage());
+                    }
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                try {
+                    Person event = dataSnapshot.getValue(Person.class);
+                    for (int i = 0; i < personArrayList.size(); i++) {
+                        if (personArrayList.get(i).getId().equals(event.getId())) {
+                            personArrayList.remove(i);
+                            madapter.notifyItemRemoved(i);
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex) {
+                    Log.e("ERROR", ex.getMessage());
+                }
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                Toast.makeText(getApplicationContext(), "OnclickMoved", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                Toast.makeText(getApplicationContext(), "OnCancelled", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
 
 

@@ -32,6 +32,16 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Nombre" />
 
+    <ProgressBar
+        android:id="@+id/progressBarDetallesRegistros"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/mytoolbar" />
+
     <ImageView
         android:id="@+id/imageViewPazySalvo"
         android:layout_width="match_parent"
