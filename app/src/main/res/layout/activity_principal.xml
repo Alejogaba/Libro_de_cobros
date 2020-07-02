@@ -70,27 +70,47 @@
     </ScrollView>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_grabar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_anchor="@id/bottomAppBar3"
+        app:layout_anchorGravity="bottom|end"
+        app:srcCompat="@drawable/microphone" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
+        android:layout_marginBottom="80dp"
+        android:layout_marginRight="20dp"
         app:layout_anchorGravity="bottom|end"
         app:srcCompat="@drawable/plus" />
 
+
     <EditText
         android:id="@+id/add_persona"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
+        android:layout_gravity="top"
         android:layout_weight="0.1"
-        android:background="@color/colorButtomBar"
-        android:padding="6dp"
+        android:background="@color/colorPrimary"
         android:ems="10"
         android:hint="Nombre"
-        android:visibility="gone"
+        android:textStyle="normal"
         android:importantForAutofill="no"
         android:inputType="textPersonName"
-        android:textSize="20sp" />
+        android:padding="6dp"
+        android:textColor="@color/colorButtomBar"
+        android:textSize="20sp"
+        android:visibility="gone" />
+
+    <com.google.android.material.bottomappbar.BottomAppBar
+        android:id="@+id/bottomAppBar3"
+        style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
+        android:backgroundTint="@color/colorPrimary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

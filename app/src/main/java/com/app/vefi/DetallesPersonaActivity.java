@@ -34,6 +34,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.app.vefi.controlador.logica.GestionProducto;
 import com.app.vefi.data.TemplatePDF;
 import com.app.vefi.data.model.Registro;
 import com.app.vefi.data.Adaptador.RegistrosAdaptador;
@@ -522,22 +523,8 @@ public class DetallesPersonaActivity extends AppCompatActivity implements Regist
     }
 
     public void addDato(int day,int month,int year,String descripcion,float value,String persona){
-        String pushID= firebase.push().getKey();
-        int fecha;
-        if(month>=0&&month<10){
-            if(day>=0&&day<10){
-                fecha = Integer.parseInt( String.valueOf(year)+"0"+String.valueOf(month)+"0"+String.valueOf(day));
-            }else{
-                fecha = Integer.parseInt( String.valueOf(year)+"0"+String.valueOf(month)+String.valueOf(day));
-            }
-        }else{
-            fecha = Integer.parseInt( String.valueOf(year)+String.valueOf(month)+String.valueOf(day));
-        }
-
-        Registro person = new Registro(day,descripcion,month,pushID,value,year,fecha);
-        FirebaseUser user = mauth.getCurrentUser();
-        firebase =  new Firebase(url+user.getUid());
-        firebase.child("registros").child(persona).child(pushID).setValue(person);
+        GestionProducto gestionProducto = new GestionProducto(getApplicationContext());
+        gestionProducto.addDato(day,month,year,descripcion,value,persona);
         recreateActivity();
     }
 

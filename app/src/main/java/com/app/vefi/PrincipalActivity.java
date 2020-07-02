@@ -1,12 +1,16 @@
 package com.app.vefi;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 
+import com.app.vefi.controlador.logica.GestionDeudor;
+import com.app.vefi.controlador.logica.GestionProducto;
+import com.app.vefi.controlador.logica.VozAtexto;
 import com.app.vefi.data.Adaptador.PrincipalAdaptador;
 import com.app.vefi.data.Adaptador.RegistrosAdaptador;
 import com.app.vefi.data.model.Person;
@@ -26,12 +30,16 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
+import android.speech.RecognitionService;
+import android.speech.RecognizerIntent;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -53,8 +61,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.time.Instant;
+import java.time.Month;
+import java.time.Year;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import static com.app.vefi.ui.login.LoginActivity.lgnActivity;
 
@@ -65,13 +78,15 @@ public class PrincipalActivity extends AppCompatActivity {
     private ListView listaDatos;
     private RecyclerView milistaDatos;
     private RecyclerView.Adapter madapter;
-    private EditText persona;
+    private FloatingActionButton btnGrabar;
+    public EditText persona;
     private Button btnBuscar;
     private RecyclerView.LayoutManager manager;
     private int contador;
     private boolean existe;
-    private String url = "https://proyecto-cobros.firebaseio.com/users/";
-    ArrayList<Person> personArrayList = new ArrayList<>();
+    private static final int REQ_CODE_SPEECH_INPUT=100;
+    private static String url = "https://proyecto-cobros.firebaseio.com/users/";
+    public ArrayList<Person> personArrayList = new ArrayList<>();
     ArrayList<String> userArrayList = new ArrayList<>();
 
 
@@ -92,6 +107,8 @@ public class PrincipalActivity extends AppCompatActivity {
         setContentView(R.layout.activity_principal);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         btnBuscar = findViewById(R.id.buttonSearchPrincipal);
+        btnGrabar = findViewById(R.id.fab_grabar);
+
         milistaDatos = (RecyclerView) findViewById(R.id.lista_personas_a_cobrar);
         milistaDatos.setHasFixedSize(true);
         manager = new LinearLayoutManager(this);
@@ -168,7 +185,6 @@ public class PrincipalActivity extends AppCompatActivity {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-                   addDato();
                 }
                 return false;
             }
@@ -189,8 +205,13 @@ public class PrincipalActivity extends AppCompatActivity {
                        addDato();
                    }
                 }
+            }
+        });
 
-
+        btnGrabar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                iniciarEntradaVoz();
             }
         });
 
@@ -198,27 +219,30 @@ public class PrincipalActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mostrarEdiTextPersona();
+            }
+        });
 
-                persona.addTextChangedListener(new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        persona.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
-                    }
+            }
 
-                    @Override
-                    public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        if(count!=0) {
-                            buscar(s.toString());
-                        }
-                        else
-                            buscar("");
-                    }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(count>0)
+                    buscar(s.toString());
+                if(personArrayList.isEmpty()&&s.toString().length()>=2){
+                    buscar(s.toString().substring(0,2));
+                }
 
-                    @Override
-                    public void afterTextChanged(Editable s) {
+                else
+                    buscar("");
+            }
 
-                    }
-                });
+            @Override
+            public void afterTextChanged(Editable s) {
+
             }
         });
     }
@@ -228,6 +252,7 @@ public class PrincipalActivity extends AppCompatActivity {
         persona.requestFocus();
         persona.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         imm.showSoftInput(persona, InputMethodManager.SHOW_IMPLICIT);
     }
 
@@ -256,7 +281,7 @@ public class PrincipalActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if(persona.getVisibility()==View.VISIBLE){
+        if(persona.getVisibility()==View.VISIBLE||!persona.getText().toString().matches("")){
             finishEdit();
         }else{
             finish();
@@ -281,11 +306,144 @@ public class PrincipalActivity extends AppCompatActivity {
             hideKeyboard(PrincipalActivity.this);
     }
 
+    public void analiza_texto(String text, final Context context){
+
+        text=text.toLowerCase();
+
+        if(text.contains("anota")&&text.contains("por valor de")){
+            String[] texto_partido=null;
+
+            if(text.contains("anota a ")){
+                texto_partido = text.split("anota a");
+            }else{
+                texto_partido = text.split("anota");
+            }
+
+
+
+            texto_partido = texto_partido[1].split("por valor de");
+
+
+            texto_partido[0] = texto_partido[0].trim();
+
+            float value;
+            try{
+                value = Float.parseFloat(texto_partido[1].trim());
+            }catch(Exception e){
+                value = 0;
+            }
+
+            final float valor = value;
+
+            String[] nombre_descripcion = texto_partido[0]. split(" ", 2);
+
+            String nombre = nombre_descripcion[0];
+
+            GestionDeudor gestionDeudor = new GestionDeudor();
+
+            final String uid = "";
+
+            final String descripcion = nombre_descripcion[1];
+
+            persona.setText(nombre);
+
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    guardarDato(uid,descripcion,context,valor);
+                }
+            }, 1000);
+
+        }else{
+            Toast.makeText(context,"Intente de nuevo",Toast.LENGTH_LONG).show();
+        }
+
+    }
+
+    public void guardarDato(String uid,String descripcion,Context context,float valor){
+        try {
+            uid = personArrayList.get(0).getId();
+        }catch (Exception e){
+            uid = "ERROR AL BUSCAR="+e.toString();
+        }
+
+        Calendar cal = Calendar.getInstance();
+        int day = cal.get(Calendar.DAY_OF_MONTH);
+        int month = cal.get(Calendar.MONTH);
+        int year = cal.get(Calendar.YEAR);
+
+        VozAtexto vozAtexto = new VozAtexto();
+
+        String des;
+
+        //Toast.makeText(context,uid,Toast.LENGTH_LONG).show();
+
+            try {
+                des=vozAtexto.analiza_descripcion(descripcion);
+
+                GestionProducto gestionProducto = new GestionProducto(getApplicationContext());
+                gestionProducto.addDato(day, month, year, des, valor, uid);
+
+                Toast.makeText(context,"Registrado con exito",Toast.LENGTH_LONG).show();
+            }catch (Exception e){
+                Toast.makeText(context,"ERROR AL GUARDAR: "+e.toString(),Toast.LENGTH_LONG).show();
+            }
+
+    }
+
     public static void hideKeyboard(Activity activity) {
         View view = activity.findViewById(android.R.id.content);
         if (view != null) {
             InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
+    public void iniciarEntradaVoz(){
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        //intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,"es-MX");
+        //intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"Di el nombre del deudor y productos a añadir");
+
+        try {
+            startActivityForResult(intent,REQ_CODE_SPEECH_INPUT);
+        }catch (ActivityNotFoundException e){
+            Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode){
+            case REQ_CODE_SPEECH_INPUT:{
+                if (resultCode==RESULT_OK && null!=data){
+                    ArrayList<String> result=data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    Toast.makeText(getApplicationContext(), result.get(0), Toast.LENGTH_SHORT).show();
+
+                    final String nombre = result.get(0);
+                    final Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            VozAtexto vozAtexto = new VozAtexto();
+                            try {
+                                analiza_texto(nombre,getApplicationContext());
+                            }catch (Exception e){
+                                Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_LONG).show();
+                            }
+
+                        }
+                    }, 1500);
+
+                }
+                break;
+            }
+
         }
     }
 
@@ -305,7 +463,7 @@ public class PrincipalActivity extends AppCompatActivity {
                     try {
 
                         Person event = dataSnapshot.getValue(Person.class);
-                        if(event.getNombre().contains(palabra_clave)){
+                        if(event.getNombre().toLowerCase().contains(palabra_clave.toLowerCase())){
                             personArrayList.add(event);
                             milistaDatos.scrollToPosition(personArrayList.size() - 1);
                             madapter.notifyItemInserted(personArrayList.size() - 1);
